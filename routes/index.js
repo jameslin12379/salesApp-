@@ -51,56 +51,78 @@ router.get('/', isAuthenticated, function(req, res, next) {
 
 // GET request for creating a Client. NOTE This must come before routes that display Client (uses id).
 router.get('/clients/new', isAuthenticated, isAdmin, function(req, res){
-    res.render('clients/new');
+    res.render('clients/new', {
+        errors: req.flash('errors'),
+        inputs: req.flash('inputs')
+    });
 });
 
 // POST request for creating Client.
 router.post('/clients', isAuthenticated, isAdmin, [
     // validation
+    body('firstname', 'Empty firstname').not().isEmpty(),
+    body('lastname', 'Empty lastname').not().isEmpty(),
+    body('dob', 'Empty dob').not().isEmpty(),
+    body('gender', 'Empty gender').not().isEmpty(),
+    body('city', 'Empty city').not().isEmpty(),
+    body('state', 'Empty state').not().isEmpty(),
     body('email', 'Empty email').not().isEmpty(),
-    body('username', 'Empty username').not().isEmpty(),
-    body('password', 'Empty password').not().isEmpty(),
+    body('tel', 'Empty phone').not().isEmpty(),
+
+    body('firstname', 'First name must be between 5-45 characters.').isLength({min:5, max:45}),
+    body('lastname', 'Last name must be between 5-45 characters.').isLength({min:5, max:45}),
+    body('city', 'City must be between 5-45 characters.').isLength({min:5, max:45}),
+    body('state', 'State must be between 5-45 characters.').isLength({min:5, max:45}),
+    body('email', 'Email must be between 5-255 characters.').isLength({min:5, max:255}),
+    body('tel', 'Phone must be 10 characters.').isLength({min:10, max:10}),
+
+    body('dob', 'Invalid DOB').isISO8601(),
     body('email', 'Invalid email').isEmail(),
-    body('email', 'Email must be between 5-100 characters.').isLength({min:5, max:100}),
-    body('username', 'Username must be between 5-20 characters.').isLength({min:5, max:20}),
-    body('password', 'Password must be between 5-100 characters.').isLength({min:5, max:100}),
-    body('password', 'Password must contain one lowercase character, one uppercase character, a number, and ' +
-        'a special character').matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,}$/, "i")
+    body('tel', 'Invalid phone').isMobilePhone()
 ], (req, res) => {
     const errors = validationResult(req);
-
+    console.log(req);
     if (!errors.isEmpty()) {
         // There are errors. Render form again with sanitized values/errors messages.
         // Error messages can be returned in an array using `errors.array()`.
-        res.render('users/new', {
-            errors: errors.array(),
-            email: req.body.email,
-            username: req.body.username
-        });
+        req.flash('errors', errors.array());
+        req.flash('inputs', req.body );
+        res.redirect('/clients/new');
+        // res.render('users/new', {
+        //     errors: errors.array(),
+        //     email: req.body.email,
+        //     username: req.body.username
+        // });
     }
     else {
         // Data from form is valid.
+        console.log(req.body);
+        sanitizeBody('firstname').trim().escape();
+        sanitizeBody('lastname').trim().escape();
+        sanitizeBody('dob').trim().escape();
+        sanitizeBody('gender').trim().escape();
+        sanitizeBody('city').trim().escape();
+        sanitizeBody('state').trim().escape();
         sanitizeBody('email').trim().escape();
-        sanitizeBody('username').trim().escape();
-        sanitizeBody('password').trim().escape();
+        sanitizeBody('tel').trim().escape();
+        const firstname = req.body.firstname;
+        const lastname = req.body.lastname;
+        const dob = req.body.dob;
+        const gender = req.body.gender;
+        const city = req.body.city;
+        const state = req.body.state;
         const email = req.body.email;
-        const username = req.body.username;
-        const password = req.body.password;
-        bcrypt.hash(password, saltRounds, function(err, hash) {
-            // Store hash in your password DB.
-            if (err) {
+        const phone = req.body.tel;
+        connection.query('INSERT INTO client (firstName, lastName, dob, gender, city, state, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [firstname, lastname, dob, gender, city, state, email, phone], function (error, results, fields) {
+            // error will be an Error if one occurred during the query
+            // results will contain the results of the query
+            // fields will contain information about the returned results fields (if any)
+            if (error) {
                 throw error;
+                console.log('w');
             }
-            connection.query('INSERT INTO user (email, username, password) VALUES (?, ?, ?)', [email, username, hash], function (error, results, fields) {
-                // error will be an Error if one occurred during the query
-                // results will contain the results of the query
-                // fields will contain information about the returned results fields (if any)
-                if (err) {
-                    throw error;
-                }
-                req.flash('success', 'You have successfully registered.');
-                res.redirect('/login');
-            });
+            req.flash('alert', 'Client created.');
+            res.redirect('/clients');
         });
     }
 });
@@ -131,7 +153,8 @@ router.get('/clients', isAuthenticated, function(req, res){
         }
         res.render('clients/index', {
             clients: results,
-            req: req
+            req: req,
+            alert: req.flash('alert')
         });
     });
 });
@@ -236,7 +259,7 @@ router.get('/users', function(req, res){
 /// LOGIN ROUTES ///
 
 router.get('/login', isNotAuthenticated, function(req, res) {
-    res.render('login', { msg: req.flash('messages') });
+    res.render('login', { errors: req.flash('errors') });
 });
 
 router.post('/login', isNotAuthenticated, passport.authenticate('local', {
