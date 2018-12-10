@@ -3,8 +3,11 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+let session = require('express-session')
 let bodyParser = require('body-parser');
 let mysql = require('mysql');
+let passport = require('passport')
+let LocalStrategy = require('passport-local').Strategy;
 
 
 var indexRouter = require('./routes/index');
@@ -40,6 +43,64 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy({
+        usernameField: 'email',
+        passwordField: 'password',
+        passReqToCallback : true // allows us to pass back the entire request to the callback
+    },
+    // function(username, password, done) {
+    //     // User.findOne({ username: username }, function (err, user) {
+    //     //     if (err) { return done(err); }
+    //     //     if (!user) {
+    //     //         return done(null, false, { message: 'Incorrect email.' });
+    //     //     }
+    //     //     if (!user.validPassword(password)) {
+    //     //         return done(null, false, { message: 'Incorrect password.' });
+    //     //     }
+    //     //     return done(null, user);
+    //     // });
+    // }
+    function(req, email, password, done) { // callback with email and password from our form
+
+        connection.query("SELECT * FROM `user` WHERE `email` = '" + email + "'",function(err,rows){
+            if (err)
+                return done(err);
+            if (!rows.length) {
+                return done(null, false, {'loginMessage': 'No user found.'}); // req.flash is the way to set flashdata using connect-flash
+            }
+
+            // if the user is found but the password is wrong
+            if (!( rows[0].password === password))
+                return done(null, false, {'loginMessage': 'Oops! Wrong password.'}); // create the loginMessage and save it to session as flashdata
+
+            // all is well, return successful user
+            return done(null, rows[0]);
+
+        });}
+));
+
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
+
+// passport.deserializeUser(function(id, done) {
+//     User.findById(id, function(err, user) {
+//         done(err, user);
+//     });
+// });
+passport.deserializeUser(function(id, done) {
+    connection.query("select * from user where id = "+id,function(err,rows){
+        done(err, rows[0]);
+    });
+});
+
 
 app.use('/', indexRouter);
 // app.use('/users', usersRouter);

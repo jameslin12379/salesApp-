@@ -1,9 +1,39 @@
 var express = require('express');
 var router = express.Router();
+const passport = require('passport');
+
+// function isAuthenticated(req, res, next) {
+//     // do any checks you want to in here
+//
+//     // CHECK THE USER STORED IN SESSION FOR A CUSTOM VARIABLE
+//     // you can do this however you want with whatever variables you set up
+//     if (req.user.authenticated)
+//         return next();
+//
+//     // IF A USER ISN'T LOGGED IN, THEN REDIRECT THEM SOMEWHERE
+//     res.redirect('/');
+// }
+
+function isNotAuthenticated(req, res, next) {
+    // do any checks you want to in here
+
+    // CHECK THE USER STORED IN SESSION FOR A CUSTOM VARIABLE
+    // you can do this however you want with whatever variables you set up
+    if (!(req.isAuthenticated())){
+        return next();
+    }
+
+    // IF A USER IS LOGGED IN, THEN REDIRECT THEM SOMEWHERE
+    res.redirect('/403');
+}
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Hey' });
+  // res.render('index', { title: 'Hey' });
+    console.log(req);
+    console.log(req.user);
+    console.log(req.isAuthenticated());
+    res.send('home');
 });
 
 /// CLIENT ROUTES ///
@@ -137,16 +167,21 @@ router.get('/users', function(req, res){
 
 /// LOGIN ROUTES ///
 
-router.get('/login', function(req, res) {
-    // res.render('login', {
-    //     msg: req.flash('success')
-    // });
+router.get('/login', isNotAuthenticated, function(req, res) {
+    res.render('login');
 });
 
-router.post('/login',
-    // passport.authenticate('local', { successRedirect: '/',
-    //     failureRedirect: '/login',
-    //     failureFlash: true })
+router.post('/login', isNotAuthenticated, passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/login',
+    failureFlash: true
+})
 );
+
+
+/// ERROR ROUTES ///
+router.get('/403', function(req, res){
+    res.render('403');
+});
 
 module.exports = router;
