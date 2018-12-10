@@ -1,18 +1,20 @@
 var express = require('express');
 var router = express.Router();
+const { body,validationResult } = require('express-validator/check');
+const { sanitizeBody } = require('express-validator/filter');
 const passport = require('passport');
 
-// function isAuthenticated(req, res, next) {
-//     // do any checks you want to in here
-//
-//     // CHECK THE USER STORED IN SESSION FOR A CUSTOM VARIABLE
-//     // you can do this however you want with whatever variables you set up
-//     if (req.user.authenticated)
-//         return next();
-//
-//     // IF A USER ISN'T LOGGED IN, THEN REDIRECT THEM SOMEWHERE
-//     res.redirect('/');
-// }
+function isAuthenticated(req, res, next) {
+    // do any checks you want to in here
+
+    // CHECK THE USER STORED IN SESSION FOR A CUSTOM VARIABLE
+    // you can do this however you want with whatever variables you set up
+    if (req.isAuthenticated())
+        return next();
+
+    // IF A USER ISN'T LOGGED IN, THEN REDIRECT THEM SOMEWHERE
+    res.redirect('/login');
+}
 
 function isNotAuthenticated(req, res, next) {
     // do any checks you want to in here
@@ -27,25 +29,80 @@ function isNotAuthenticated(req, res, next) {
     res.redirect('/403');
 }
 
+function isAdmin(req, res, next) {
+    // do any checks you want to in here
+
+    // CHECK THE USER STORED IN SESSION FOR A CUSTOM VARIABLE
+    // you can do this however you want with whatever variables you set up
+    if (req.user.username === 'admin') {
+        return next();
+    }
+
+    // IF A USER IS NOT ADMIN, THEN REDIRECT THEM SOMEWHERE
+    res.redirect('/403');
+}
+
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  // res.render('index', { title: 'Hey' });
-    console.log(req);
-    console.log(req.user);
-    console.log(req.isAuthenticated());
-    res.send('home');
+router.get('/', isAuthenticated, function(req, res, next) {
+    res.redirect('/clients');
 });
 
 /// CLIENT ROUTES ///
 
 // GET request for creating a Client. NOTE This must come before routes that display Client (uses id).
-router.get('/clients/new', function(req, res){
-    res.send('client form');
+router.get('/clients/new', isAuthenticated, isAdmin, function(req, res){
+    res.render('clients/new');
 });
 
 // POST request for creating Client.
-router.post('/clients', function(req, res){
+router.post('/clients', isAuthenticated, isAdmin, [
+    // validation
+    body('email', 'Empty email').not().isEmpty(),
+    body('username', 'Empty username').not().isEmpty(),
+    body('password', 'Empty password').not().isEmpty(),
+    body('email', 'Invalid email').isEmail(),
+    body('email', 'Email must be between 5-100 characters.').isLength({min:5, max:100}),
+    body('username', 'Username must be between 5-20 characters.').isLength({min:5, max:20}),
+    body('password', 'Password must be between 5-100 characters.').isLength({min:5, max:100}),
+    body('password', 'Password must contain one lowercase character, one uppercase character, a number, and ' +
+        'a special character').matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,}$/, "i")
+], (req, res) => {
+    const errors = validationResult(req);
 
+    if (!errors.isEmpty()) {
+        // There are errors. Render form again with sanitized values/errors messages.
+        // Error messages can be returned in an array using `errors.array()`.
+        res.render('users/new', {
+            errors: errors.array(),
+            email: req.body.email,
+            username: req.body.username
+        });
+    }
+    else {
+        // Data from form is valid.
+        sanitizeBody('email').trim().escape();
+        sanitizeBody('username').trim().escape();
+        sanitizeBody('password').trim().escape();
+        const email = req.body.email;
+        const username = req.body.username;
+        const password = req.body.password;
+        bcrypt.hash(password, saltRounds, function(err, hash) {
+            // Store hash in your password DB.
+            if (err) {
+                throw error;
+            }
+            connection.query('INSERT INTO user (email, username, password) VALUES (?, ?, ?)', [email, username, hash], function (error, results, fields) {
+                // error will be an Error if one occurred during the query
+                // results will contain the results of the query
+                // fields will contain information about the returned results fields (if any)
+                if (err) {
+                    throw error;
+                }
+                req.flash('success', 'You have successfully registered.');
+                res.redirect('/login');
+            });
+        });
+    }
 });
 
 // DELETE request to delete Client.
@@ -64,8 +121,19 @@ router.put('/clients/:id', function (req, res) {
 });
 
 // GET request for list of all Client items.
-router.get('/clients', function(req, res){
-  res.send('clients list');
+router.get('/clients', isAuthenticated, function(req, res){
+    connection.query('SELECT * FROM `client`', function (error, results, fields) {
+        // error will be an Error if one occurred during the query
+        // results will contain the results of the query
+        // fields will contain information about the returned results fields (if any)
+        if (error) {
+            throw error;
+        }
+        res.render('clients/index', {
+            clients: results,
+            req: req
+        });
+    });
 });
 
 /// EMPLOYEE ROUTES ///
@@ -168,7 +236,7 @@ router.get('/users', function(req, res){
 /// LOGIN ROUTES ///
 
 router.get('/login', isNotAuthenticated, function(req, res) {
-    res.render('login');
+    res.render('login', { msg: req.flash('messages') });
 });
 
 router.post('/login', isNotAuthenticated, passport.authenticate('local', {

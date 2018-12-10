@@ -1,0 +1,35 @@
+<% include ../partials/header %>
+
+<div class="container">
+
+    <form action="/clients" method="post">
+        <div class="form-group">
+            <input type="text" name="firstname" class="form-control" placeholder="First name" required>
+        </div>
+        <div class="form-group">
+            <input type="text" name="lastname" class="form-control" placeholder="Last name" required>
+        </div>
+        <div class="form-group">
+            <input type="date" name="dob" class="form-control" placeholder="DOB" required>
+        </div>
+        <div class="form-group">
+            <input type="password" name="password" class="form-control" placeholder="Password" required>
+        </div>
+        <div class="form-group">
+            <input type="text" name="city" class="form-control" placeholder="City" required>
+        </div>
+        <div class="form-group">
+            <input type="text" name="state" class="form-control" placeholder="State" required>
+        </div>
+        <div class="form-group">
+            <input type="email" name="email" class="form-control" placeholder="Email" required>
+        </div>
+        <div class="form-group">
+            <input type="tel" name="tel" class="form-control" placeholder="Telephone number" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Create client</button>
+    </form>
+
+</div>
+
+<% include ../partials/footer %>

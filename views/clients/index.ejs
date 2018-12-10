@@ -1,0 +1,27 @@
+<% include ../partials/header %>
+
+<div class="container">
+    <h1>Clients <a class="btn btn-outline-secondary" href="/clients/new">Create</a></h1>
+    <ul class="list-group">
+        <% for(var i = 0; i < clients.length; i++) { %>
+        <li class="list-group-item">
+            <%= clients[i].id %>
+            <%= clients[i].firstName %>
+            <%= clients[i].lastName %>
+            <%= clients[i].dob %>
+            <%= clients[i].gender %>
+            <%= clients[i].city %>
+            <%= clients[i].state %>
+            <%= clients[i].email %>
+            <%= clients[i].phone %>
+            <% if (req.user.username === 'admin') { %>
+            <a class="btn btn-outline-secondary" href="/clients/<%= clients[i].id %>/edit">Edit</a>
+            <a class="btn btn-outline-secondary" href="/clients/<%= clients[i].id %>">Delete</a>
+
+            <% } %>
+        </li>
+        <% } %>
+    </ul>
+</div>
+
+<% include ../partials/footer %>
