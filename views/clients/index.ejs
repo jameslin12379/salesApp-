@@ -24,8 +24,9 @@
             <%= clients[i].phone %>
             <% if (req.user.username === 'admin') { %>
             <a class="btn btn-outline-secondary" href="/clients/<%= clients[i].id %>/edit">Edit</a>
-            <a class="btn btn-outline-secondary" href="/clients/<%= clients[i].id %>">Delete</a>
-
+            <form action="/clients/<%= clients[i].id %>?_method=DELETE" method="post">
+                <button type="submit" class="btn btn-outline-secondary">Delete</button>
+            </form>
             <% } %>
         </li>
         <% } %>

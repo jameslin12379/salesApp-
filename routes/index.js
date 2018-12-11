@@ -119,7 +119,6 @@ router.post('/clients', isAuthenticated, isAdmin, [
             // fields will contain information about the returned results fields (if any)
             if (error) {
                 throw error;
-                console.log('w');
             }
             req.flash('alert', 'Client created.');
             res.redirect('/clients');
@@ -128,22 +127,107 @@ router.post('/clients', isAuthenticated, isAdmin, [
 });
 
 // DELETE request to delete Client.
-router.delete('/clients/:id', function(req, res){
-
+router.delete('/clients/:id', isAuthenticated, isAdmin, function(req, res){
+    connection.query('DELETE FROM client WHERE id = ?', [req.params.id], function (error, results, fields) {
+        // error will be an Error if one occurred during the query
+        // results will contain the results of the query
+        // fields will contain information about the returned results fields (if any)
+        if (error) {
+            throw error;
+        }
+        req.flash('alert', 'Client deleted.');
+        res.redirect('/clients');
+    });
 });
 
 // GET request to update Client.
-router.get('/clients/:id/edit', function(req, res){
-    res.send('edit form');
+router.get('/clients/:id/edit', isAuthenticated, isAdmin, function(req, res){
+    connection.query('SELECT firstName, lastName, dob, gender, city, state, email, phone FROM client WHERE id = ?', [req.params.id], function (error, results, fields) {
+        // error will be an Error if one occurred during the query
+        // results will contain the results of the query
+        // fields will contain information about the returned results fields (if any)
+        if (error) {
+            throw error;
+        }
+        res.render('clients/edit', {
+            data: results,
+            id: req.params.id,
+            errors: req.flash('errors'),
+            inputs: req.flash('inputs')
+        });
+    });
 });
 
 // PUT request to update Client.
-router.put('/clients/:id', function (req, res) {
-    
+router.put('/clients/:id', isAuthenticated, isAdmin, [
+    // validation
+    body('firstname', 'Empty firstname').not().isEmpty(),
+    body('lastname', 'Empty lastname').not().isEmpty(),
+    body('dob', 'Empty dob').not().isEmpty(),
+    body('gender', 'Empty gender').not().isEmpty(),
+    body('city', 'Empty city').not().isEmpty(),
+    body('state', 'Empty state').not().isEmpty(),
+    body('email', 'Empty email').not().isEmpty(),
+    body('tel', 'Empty phone').not().isEmpty(),
+
+    body('firstname', 'First name must be between 5-45 characters.').isLength({min:5, max:45}),
+    body('lastname', 'Last name must be between 5-45 characters.').isLength({min:5, max:45}),
+    body('city', 'City must be between 5-45 characters.').isLength({min:5, max:45}),
+    body('state', 'State must be between 5-45 characters.').isLength({min:5, max:45}),
+    body('email', 'Email must be between 5-255 characters.').isLength({min:5, max:255}),
+    body('tel', 'Phone must be 10 characters.').isLength({min:10, max:10}),
+
+    body('dob', 'Invalid DOB').isISO8601(),
+    body('email', 'Invalid email').isEmail(),
+    body('tel', 'Invalid phone').isMobilePhone()
+], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        // There are errors. Render form again with sanitized values/errors messages.
+        // Error messages can be returned in an array using `errors.array()`.
+        req.flash('errors', errors.array());
+        req.flash('inputs', req.body );
+        res.redirect(req._parsedOriginalUrl.pathname + '/edit');
+        // res.render('users/new', {
+        //     errors: errors.array(),
+        //     email: req.body.email,
+        //     username: req.body.username
+        // });
+    }
+    else {
+        // Data from form is valid.
+        sanitizeBody('firstname').trim().escape();
+        sanitizeBody('lastname').trim().escape();
+        sanitizeBody('dob').trim().escape();
+        sanitizeBody('gender').trim().escape();
+        sanitizeBody('city').trim().escape();
+        sanitizeBody('state').trim().escape();
+        sanitizeBody('email').trim().escape();
+        sanitizeBody('tel').trim().escape();
+        const firstname = req.body.firstname;
+        const lastname = req.body.lastname;
+        const dob = req.body.dob;
+        const gender = req.body.gender;
+        const city = req.body.city;
+        const state = req.body.state;
+        const email = req.body.email;
+        const phone = req.body.tel;
+        connection.query('UPDATE client SET firstName = ?, lastName = ?, dob = ?, gender = ?, city = ?, state = ?, email = ?, phone = ? WHERE id = ?', [firstname, lastname, dob, gender, city, state, email, phone, req.params.id], function (error, results, fields) {
+            // error will be an Error if one occurred during the query
+            // results will contain the results of the query
+            // fields will contain information about the returned results fields (if any)
+            if (error) {
+                throw error;
+            }
+            req.flash('alert', 'Client updated.');
+            res.redirect('/clients');
+        });
+    }
 });
 
 // GET request for list of all Client items.
 router.get('/clients', isAuthenticated, function(req, res){
+    console.log(req.route.path);
     connection.query('SELECT * FROM `client`', function (error, results, fields) {
         // error will be an Error if one occurred during the query
         // results will contain the results of the query

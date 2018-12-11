@@ -8,7 +8,8 @@ let bodyParser = require('body-parser');
 let mysql = require('mysql');
 let passport = require('passport')
 let LocalStrategy = require('passport-local').Strategy;
-var flash = require('connect-flash');
+let flash = require('connect-flash');
+let methodOverride = require("method-override");
 
 
 var indexRouter = require('./routes/index');
@@ -42,6 +43,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(methodOverride('_method'));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
