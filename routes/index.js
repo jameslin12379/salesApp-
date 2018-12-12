@@ -42,6 +42,20 @@ function isAdmin(req, res, next) {
     res.redirect('/403');
 }
 
+function isAdminOrSelf(req, res, next) {
+    // do any checks you want to in here
+
+    // CHECK THE USER STORED IN SESSION FOR A CUSTOM VARIABLE
+    // you can do this however you want with whatever variables you set up
+    if (req.user.username === 'admin' || req.user.id.toString() === req.params.id ) {
+        return next();
+    }
+
+    // IF A USER IS NOT ADMIN, THEN REDIRECT THEM SOMEWHERE
+    res.redirect('/403');
+}
+
+
 /* GET home page. */
 router.get('/', isAuthenticated, function(req, res, next) {
     res.redirect('/clients');
@@ -610,6 +624,24 @@ router.get('/users/:id/edit', function(req, res){
 // PUT request to update User.
 router.put('/users/:id', function (req, res) {
 
+});
+
+// GET request for one User.
+router.get('/users/:id', isAuthenticated, isAdminOrSelf, function(req, res){
+    connection.query('SELECT username, email, password FROM `user` WHERE id = ?', [req.params.id], function (error, results, fields) {
+        // error will be an Error if one occurred during the query
+        // results will contain the results of the query
+        // fields will contain information about the returned results fields (if any)
+        if (error) {
+            throw error;
+        }
+        console.log(results);
+        res.render('users/show', {
+            req: req,
+            user: results,
+            alert: req.flash('alert')
+        });
+    });
 });
 
 // GET request for list of all User items.
