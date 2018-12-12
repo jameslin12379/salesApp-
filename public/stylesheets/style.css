@@ -10,3 +10,19 @@
 .pt-80 {
   padding-top: 80px;
 }
+
+.mt-80 {
+  margin-top: 80px;
+}
+
+.white {
+  color: white;
+}
+
+.flex-d {
+  flex-direction: row;
+}
+
+.align-items {
+  align-items: center;
+}

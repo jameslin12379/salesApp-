@@ -12,15 +12,15 @@
                         <!--</a>-->
                     <!--</li>-->
                     <li class="nav-item">
-                        <a class="nav-link active" href="/clients">
-                            <span data-feather="file"></span>
-                            Clients <span class="sr-only">(current)</span>
+                        <a class="nav-link" href="/clients">
+                            <span data-feather="shopping-cart"></span>
+                            Clients
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/orders">
-                            <span data-feather="shopping-cart"></span>
-                            Orders
+                        <a class="nav-link active" href="/orders">
+                            <span data-feather="file"></span>
+                            Orders <span class="sr-only">(current)</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -86,12 +86,12 @@
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-                <h1 class="h2">Clients</h1>
+                <h1 class="h2">Orders</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <!--<div class="btn-group mr-2">-->
                         <!--<button class="btn btn-sm btn-outline-secondary">Share</button>-->
                     <% if (req.user.username === 'admin') { %>
-                        <a class="btn btn-outline-secondary" href="/clients/new">Create</a>
+                        <a class="btn btn-outline-secondary" href="/orders/new">Create</a>
                     <% } %>
                         <!--<button class="btn btn-sm btn-outline-secondary">Create</button>-->
                     <!--</div>-->
@@ -115,14 +115,9 @@
                     <thead>
                     <tr>
                         <th>#</th>
-                        <th>First name</th>
-                        <th>Last name</th>
-                        <th>DOB</th>
-                        <th>Gender</th>
-                        <th>City</th>
-                        <th>State</th>
-                        <th>Email</th>
-                        <th>Phone</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Description</th>
                         <% if (req.user.username === 'admin') { %>
                             <th>Action</th>
                             <th>Action</th>
@@ -130,21 +125,16 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <% for(var i = 0; i < clients.length; i++) { %>
+                    <% for(var i = 0; i < orders.length; i++) { %>
                         <tr>
-                            <td><%= clients[i].id %></td>
-                            <td><%= clients[i].firstName %></td>
-                            <td><%= clients[i].lastName %></td>
-                            <td><%= clients[i].dob %></td>
-                            <td><%= clients[i].gender %></td>
-                            <td><%= clients[i].city %></td>
-                            <td><%= clients[i].state %></td>
-                            <td><%= clients[i].email %></td>
-                            <td><%= clients[i].phone %></td>
+                            <td><%= orders[i].id %></td>
+                            <td><%= orders[i].amount %></td>
+                            <td><%= orders[i].date %></td>
+                            <td><%= orders[i].description %></td>
                             <% if (req.user.username === 'admin') { %>
-                                <td><a class="btn btn-outline-secondary" href="/clients/<%= clients[i].id %>/edit">Edit</a></td>
+                                <td><a class="btn btn-outline-secondary" href="/orders/<%= orders[i].id %>/edit">Edit</a></td>
                                 <td>
-                                    <form action="/clients/<%= clients[i].id %>?_method=DELETE" method="post">
+                                    <form action="/orders/<%= orders[i].id %>?_method=DELETE" method="post">
                                         <button type="submit" class="btn btn-outline-secondary">Delete</button>
                                     </form>
                                 </td>

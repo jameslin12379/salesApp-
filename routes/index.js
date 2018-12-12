@@ -52,6 +52,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
 // GET request for creating a Client. NOTE This must come before routes that display Client (uses id).
 router.get('/clients/new', isAuthenticated, isAdmin, function(req, res){
     res.render('clients/new', {
+        req: req,
         errors: req.flash('errors'),
         inputs: req.flash('inputs')
     });
@@ -67,21 +68,20 @@ router.post('/clients', isAuthenticated, isAdmin, [
     body('city', 'Empty city').not().isEmpty(),
     body('state', 'Empty state').not().isEmpty(),
     body('email', 'Empty email').not().isEmpty(),
-    body('tel', 'Empty phone').not().isEmpty(),
+    body('phone', 'Empty phone').not().isEmpty(),
 
     body('firstname', 'First name must be between 5-45 characters.').isLength({min:5, max:45}),
     body('lastname', 'Last name must be between 5-45 characters.').isLength({min:5, max:45}),
     body('city', 'City must be between 5-45 characters.').isLength({min:5, max:45}),
     body('state', 'State must be between 5-45 characters.').isLength({min:5, max:45}),
     body('email', 'Email must be between 5-255 characters.').isLength({min:5, max:255}),
-    body('tel', 'Phone must be 10 characters.').isLength({min:10, max:10}),
+    body('phone', 'Phone must be 10 characters.').isLength({min:10, max:10}),
 
     body('dob', 'Invalid DOB').isISO8601(),
     body('email', 'Invalid email').isEmail(),
-    body('tel', 'Invalid phone').isMobilePhone()
+    body('phone', 'Invalid phone').isMobilePhone()
 ], (req, res) => {
     const errors = validationResult(req);
-    console.log(req);
     if (!errors.isEmpty()) {
         // There are errors. Render form again with sanitized values/errors messages.
         // Error messages can be returned in an array using `errors.array()`.
@@ -104,7 +104,7 @@ router.post('/clients', isAuthenticated, isAdmin, [
         sanitizeBody('city').trim().escape();
         sanitizeBody('state').trim().escape();
         sanitizeBody('email').trim().escape();
-        sanitizeBody('tel').trim().escape();
+        sanitizeBody('phone').trim().escape();
         const firstname = req.body.firstname;
         const lastname = req.body.lastname;
         const dob = req.body.dob;
@@ -112,7 +112,7 @@ router.post('/clients', isAuthenticated, isAdmin, [
         const city = req.body.city;
         const state = req.body.state;
         const email = req.body.email;
-        const phone = req.body.tel;
+        const phone = req.body.phone;
         connection.query('INSERT INTO client (firstName, lastName, dob, gender, city, state, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [firstname, lastname, dob, gender, city, state, email, phone], function (error, results, fields) {
             // error will be an Error if one occurred during the query
             // results will contain the results of the query
@@ -149,7 +149,13 @@ router.get('/clients/:id/edit', isAuthenticated, isAdmin, function(req, res){
         if (error) {
             throw error;
         }
+        results[0].dob = JSON.stringify(results[0].dob).slice(1,11);
+        //results[0].dob = s.slice(6,8) + '-' + s.slice(9,11) + '-' + s.slice(1,5);
+        // console.log(results[0].dob);
+        //console.log(results[0].city);
+
         res.render('clients/edit', {
+            req: req,
             data: results,
             id: req.params.id,
             errors: req.flash('errors'),
@@ -168,18 +174,18 @@ router.put('/clients/:id', isAuthenticated, isAdmin, [
     body('city', 'Empty city').not().isEmpty(),
     body('state', 'Empty state').not().isEmpty(),
     body('email', 'Empty email').not().isEmpty(),
-    body('tel', 'Empty phone').not().isEmpty(),
+    body('phone', 'Empty phone').not().isEmpty(),
 
     body('firstname', 'First name must be between 5-45 characters.').isLength({min:5, max:45}),
     body('lastname', 'Last name must be between 5-45 characters.').isLength({min:5, max:45}),
     body('city', 'City must be between 5-45 characters.').isLength({min:5, max:45}),
     body('state', 'State must be between 5-45 characters.').isLength({min:5, max:45}),
     body('email', 'Email must be between 5-255 characters.').isLength({min:5, max:255}),
-    body('tel', 'Phone must be 10 characters.').isLength({min:10, max:10}),
+    body('phone', 'Phone must be 10 characters.').isLength({min:10, max:10}),
 
     body('dob', 'Invalid DOB').isISO8601(),
     body('email', 'Invalid email').isEmail(),
-    body('tel', 'Invalid phone').isMobilePhone()
+    body('phone', 'Invalid phone').isMobilePhone()
 ], (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -203,7 +209,7 @@ router.put('/clients/:id', isAuthenticated, isAdmin, [
         sanitizeBody('city').trim().escape();
         sanitizeBody('state').trim().escape();
         sanitizeBody('email').trim().escape();
-        sanitizeBody('tel').trim().escape();
+        sanitizeBody('phone').trim().escape();
         const firstname = req.body.firstname;
         const lastname = req.body.lastname;
         const dob = req.body.dob;
@@ -211,7 +217,7 @@ router.put('/clients/:id', isAuthenticated, isAdmin, [
         const city = req.body.city;
         const state = req.body.state;
         const email = req.body.email;
-        const phone = req.body.tel;
+        const phone = req.body.phone;
         connection.query('UPDATE client SET firstName = ?, lastName = ?, dob = ?, gender = ?, city = ?, state = ?, email = ?, phone = ? WHERE id = ?', [firstname, lastname, dob, gender, city, state, email, phone, req.params.id], function (error, results, fields) {
             // error will be an Error if one occurred during the query
             // results will contain the results of the query
@@ -236,8 +242,8 @@ router.get('/clients', isAuthenticated, function(req, res){
             throw error;
         }
         res.render('clients/index', {
-            clients: results,
             req: req,
+            clients: results,
             alert: req.flash('alert')
         });
     });
@@ -246,13 +252,67 @@ router.get('/clients', isAuthenticated, function(req, res){
 /// EMPLOYEE ROUTES ///
 
 // GET request for creating a Employee. NOTE This must come before routes that display Employee (uses id).
-router.get('/employees/new', function(req, res){
-    res.send('employee form');
+router.get('/employees/new', isAuthenticated, isAdmin, function(req, res){
+    res.render('employees/new', {
+        req: req,
+        errors: req.flash('errors'),
+        inputs: req.flash('inputs')
+    });
 });
 
 // POST request for creating Employee.
-router.post('/employees', function(req, res){
+router.post('/employees', isAuthenticated, isAdmin, [
+    // validation
+    body('firstname', 'Empty firstname').not().isEmpty(),
+    body('lastname', 'Empty lastname').not().isEmpty(),
+    body('position', 'Empty dob').not().isEmpty(),
+    body('email', 'Empty email').not().isEmpty(),
+    body('phone', 'Empty phone').not().isEmpty(),
 
+    body('firstname', 'First name must be between 5-45 characters.').isLength({min:5, max:45}),
+    body('lastname', 'Last name must be between 5-45 characters.').isLength({min:5, max:45}),
+    body('email', 'Email must be between 5-255 characters.').isLength({min:5, max:255}),
+    body('phone', 'Phone must be 10 characters.').isLength({min:10, max:10}),
+
+    body('email', 'Invalid email').isEmail(),
+    body('phone', 'Invalid phone').isMobilePhone()
+], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        // There are errors. Render form again with sanitized values/errors messages.
+        // Error messages can be returned in an array using `errors.array()`.
+        req.flash('errors', errors.array());
+        req.flash('inputs', req.body );
+        res.redirect('/employees/new');
+        // res.render('users/new', {
+        //     errors: errors.array(),
+        //     email: req.body.email,
+        //     username: req.body.username
+        // });
+    }
+    else {
+        // Data from form is valid.
+        sanitizeBody('firstname').trim().escape();
+        sanitizeBody('lastname').trim().escape();
+        sanitizeBody('position').trim().escape();
+        sanitizeBody('email').trim().escape();
+        sanitizeBody('phone').trim().escape();
+        const firstname = req.body.firstname;
+        const lastname = req.body.lastname;
+        const position = req.body.position;
+        const email = req.body.email;
+        const phone = req.body.phone;
+        connection.query('INSERT INTO employee (firstName, lastName, position, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [firstName, lastName, position, email, phone], function (error, results, fields) {
+            // error will be an Error if one occurred during the query
+            // results will contain the results of the query
+            // fields will contain information about the returned results fields (if any)
+            if (error) {
+                throw error;
+            }
+            req.flash('alert', 'Employee created.');
+            res.redirect('/employees');
+        });
+    }
 });
 
 // DELETE request to delete Employee.
@@ -275,36 +335,162 @@ router.get('/employees', function(req, res){
     res.send('employees list');
 });
 
-/// SALES ROUTES ///
+/// ORDERS ROUTES ///
 
-// GET request for creating a Sale. NOTE This must come before routes that display Sale (uses id).
-router.get('/sales/new', function(req, res){
-    res.send('sale form');
+// GET request for creating a Order. NOTE This must come before routes that display Order (uses id).
+router.get('/orders/new', isAuthenticated, isAdmin, function(req, res){
+    res.render('orders/new', {
+        req: req,
+        errors: req.flash('errors'),
+        inputs: req.flash('inputs')
+    });
 });
 
-// POST request for creating Sale.
-router.post('/sales', function(req, res){
+// POST request for creating Order.
+router.post('/orders', isAuthenticated, isAdmin, [
+    // validation
+    body('amount', 'Empty amount').not().isEmpty(),
+    body('date', 'Empty date').not().isEmpty(),
+    body('description', 'Empty description').not().isEmpty(),
 
+    body('description', 'Description must be between 5-45 characters.').isLength({min:5, max:45}),
+
+    body('date', 'Invalid date').isISO8601(),
+
+], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        // There are errors. Render form again with sanitized values/errors messages.
+        // Error messages can be returned in an array using `errors.array()`.
+        req.flash('errors', errors.array());
+        req.flash('inputs', req.body );
+        res.redirect('/orders/new');
+        // res.render('users/new', {
+        //     errors: errors.array(),
+        //     email: req.body.email,
+        //     username: req.body.username
+        // });
+    }
+    else {
+        // Data from form is valid.
+        sanitizeBody('amount').trim().escape();
+        sanitizeBody('date').trim().escape();
+        sanitizeBody('description').trim().escape();
+        const amount = req.body.amount;
+        const date = req.body.date;
+        const description = req.body.description;
+        console.log(amount,date,description);
+        connection.query('INSERT INTO orders (amount, date, description) VALUES (?, ?, ?)', [amount, date, description], function (error, results, fields) {
+            // error will be an Error if one occurred during the query
+            // results will contain the results of the query
+            // fields will contain information about the returned results fields (if any)
+            if (error) {
+                throw error;
+            }
+            req.flash('alert', 'Order created.');
+            res.redirect('/orders');
+        });
+    }
 });
 
-// DELETE request to delete Sale.
-router.delete('/sales/:id', function(req, res){
-
+// DELETE request to delete Order.
+router.delete('/orders/:id', isAuthenticated, isAdmin, function(req, res){
+    connection.query('DELETE FROM orders WHERE id = ?', [req.params.id], function (error, results, fields) {
+        // error will be an Error if one occurred during the query
+        // results will contain the results of the query
+        // fields will contain information about the returned results fields (if any)
+        if (error) {
+            throw error;
+        }
+        req.flash('alert', 'Order deleted.');
+        res.redirect('/orders');
+    });
 });
 
-// GET request to update Sale.
-router.get('/sales/:id/edit', function(req, res){
-    res.send('edit form');
+// GET request to update Order.
+router.get('/orders/:id/edit', isAuthenticated, isAdmin, function(req, res){
+    connection.query('SELECT amount, date, description FROM orders WHERE id = ?', [req.params.id], function (error, results, fields) {
+        // error will be an Error if one occurred during the query
+        // results will contain the results of the query
+        // fields will contain information about the returned results fields (if any)
+        if (error) {
+            throw error;
+        }
+        results[0].date = JSON.stringify(results[0].date).slice(1,11);
+        //results[0].dob = s.slice(6,8) + '-' + s.slice(9,11) + '-' + s.slice(1,5);
+        // console.log(results[0].dob);
+        //console.log(results[0].city);
+
+        res.render('orders/edit', {
+            req: req,
+            data: results,
+            id: req.params.id,
+            errors: req.flash('errors'),
+            inputs: req.flash('inputs')
+        });
+    });
 });
 
-// PUT request to update Sale.
-router.put('/sales/:id', function (req, res) {
+// PUT request to update Order.
+router.put('/orders/:id', isAuthenticated, isAdmin, [
+    // validation
+    body('amount', 'Empty amount').not().isEmpty(),
+    body('date', 'Empty date').not().isEmpty(),
+    body('description', 'Empty description').not().isEmpty(),
 
+    body('description', 'Description must be between 5-45 characters.').isLength({min:5, max:45}),
+
+    body('date', 'Invalid date').isISO8601(),
+], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        // There are errors. Render form again with sanitized values/errors messages.
+        // Error messages can be returned in an array using `errors.array()`.
+        req.flash('errors', errors.array());
+        req.flash('inputs', req.body );
+        res.redirect(req._parsedOriginalUrl.pathname + '/edit');
+        // res.render('users/new', {
+        //     errors: errors.array(),
+        //     email: req.body.email,
+        //     username: req.body.username
+        // });
+    }
+    else {
+        // Data from form is valid.
+        sanitizeBody('amount').trim().escape();
+        sanitizeBody('date').trim().escape();
+        sanitizeBody('description').trim().escape();
+        const amount = req.body.amount;
+        const date = req.body.date;
+        const description = req.body.description;
+        connection.query('UPDATE orders SET amount = ?, date = ?, description = ? WHERE id = ?', [amount, date, description, req.params.id], function (error, results, fields) {
+            // error will be an Error if one occurred during the query
+            // results will contain the results of the query
+            // fields will contain information about the returned results fields (if any)
+            if (error) {
+                throw error;
+            }
+            req.flash('alert', 'Order updated.');
+            res.redirect('/orders');
+        });
+    }
 });
 
-// GET request for list of all Sale items.
-router.get('/sales', function(req, res){
-    res.send('sales list');
+// GET request for list of all Order items.
+router.get('/orders', isAuthenticated, function(req, res){
+    connection.query('SELECT * FROM `orders`', function (error, results, fields) {
+        // error will be an Error if one occurred during the query
+        // results will contain the results of the query
+        // fields will contain information about the returned results fields (if any)
+        if (error) {
+            throw error;
+        }
+        res.render('orders/index', {
+            req: req,
+            orders: results,
+            alert: req.flash('alert')
+        });
+    });
 });
 
 
