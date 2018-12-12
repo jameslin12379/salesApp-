@@ -10,7 +10,7 @@
         <div class="col-md-3">
         </div>
         <div class="col-md-6 pt-80">
-            <h3 class="mb-3">Edit order</h3>
+            <h3 class="mb-3">Edit employee</h3>
             <% if (errors.length > 0) {  %>
             <% for(var i = 0; i < errors.length; i++) { %>
             <div class="alert alert-danger" role="alert">
@@ -18,26 +18,36 @@
             </div>
             <% } %>
             <% } %>
-            <form action="/orders/<%= id %>?_method=PUT" method="post" class="needs-validation">
-                <div class="mb-3">
-                    <input type="text" class="form-control" name="amount" placeholder="Amount" value="<%if (inputs.length > 0) { %><%=inputs[0].amount%><% }else{ %><%=data[0].amount%><% } %>" required>
+            <form action="/employees/<%= id %>?_method=PUT" method="post" class="needs-validation">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <input type="text" class="form-control" name="firstname" placeholder="First name" value="<%if (inputs.length > 0) { %><%=inputs[0].firstname%><% }else{ %><%=data[0].firstName%><% } %>" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <input type="text" class="form-control" name="lastname" placeholder="Last name" value="<%if (inputs.length > 0) { %><%=inputs[0].lastname%><% }else{ %><%=data[0].lastName%><% } %>" required>
+                    </div>
                 </div>
 
                 <div class="mb-3">
-                    <!--<div class="input-group">-->
-                    <!--<div class="input-group-prepend">-->
-                    <!--<span class="input-group-text">@</span>-->
-                    <!--</div>-->
-                    <input type="date" class="form-control" name="date" placeholder="Date" value="<%if (inputs.length > 0) { %><%=inputs[0].date%><% }else{ %><%=data[0].date%><% } %>" required>
-                    <!--</div>-->
+                    <select class="custom-select d-block w-100" name="position" required>
+                        <option>Make a selection</option>
+                        <option <% if (data[0].position === 'manager') { %> selected <% } %><% if (inputs.length > 0) { %><% if (inputs[0].position === 'manager'){ %> selected <% } %><% } %> value="manager">Manager</option>
+                        <option <% if (data[0].position === 'front end developer') { %> selected <% } %><% if (inputs.length > 0) { %><% if (inputs[0].position === 'front end developer'){ %> selected <% } %><% } %> value="front end developer">Front end developer</option>
+                        <option <% if (data[0].position === 'back end developer') { %> selected <% } %><% if (inputs.length > 0) { %><% if (inputs[0].position === 'back end developer'){ %> selected <% } %><% } %> value="back end developer">Back end developer</option>
+                        <option <% if (data[0].position === 'graphic designer') { %> selected <% } %><% if (inputs.length > 0) { %><% if (inputs[0].position === 'graphic designer'){ %> selected <% } %><% } %> value="graphic designer">Graphic designer</option>
+                    </select>
                 </div>
 
                 <div class="mb-3">
-                    <input type="text" class="form-control" name="description" placeholder="Description" value="<%if (inputs.length > 0) { %><%=inputs[0].description%><% }else{ %><%=data[0].description%><% } %>" required>
+                    <input type="email" class="form-control" name="email" placeholder="Email" value="<%if (inputs.length > 0) { %><%=inputs[0].email%><% }else{ %><%=data[0].email%><% } %>" required>
+                </div>
+
+                <div class="mb-3">
+                    <input type="text" class="form-control" name="phone" placeholder="Phone" value="<%if (inputs.length > 0) { %><%=inputs[0].phone%><% }else{ %><%=data[0].phone%><% } %>" required>
                 </div>
 
 
-                <button class="btn btn-primary btn-lg btn-block" type="submit">Edit order</button>
+                <button class="btn btn-primary btn-lg btn-block" type="submit">Edit employee</button>
             </form>
         </div>
         <div class="col-md-3">

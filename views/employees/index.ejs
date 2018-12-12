@@ -17,16 +17,17 @@
                             Clients
                         </a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link active" href="/orders">
-                            <span data-feather="file"></span>
-                            Orders <span class="sr-only">(current)</span>
+                        <a class="nav-link" href="/orders">
+                            <span data-feather="users"></span>
+                            Orders
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="users"></span>
-                            Employees
+                        <a class="nav-link active" href="/employees">
+                            <span data-feather="file"></span>
+                            Employees <span class="sr-only">(current)</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -86,12 +87,12 @@
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-                <h1 class="h2">Orders</h1>
+                <h1 class="h2">Employees</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <!--<div class="btn-group mr-2">-->
                         <!--<button class="btn btn-sm btn-outline-secondary">Share</button>-->
                     <% if (req.user.username === 'admin') { %>
-                        <a class="btn btn-outline-secondary" href="/orders/new">Create</a>
+                        <a class="btn btn-outline-secondary" href="/employees/new">Create</a>
                     <% } %>
                         <!--<button class="btn btn-sm btn-outline-secondary">Create</button>-->
                     <!--</div>-->
@@ -115,9 +116,11 @@
                     <thead>
                     <tr>
                         <th>#</th>
-                        <th>Amount</th>
-                        <th>Date</th>
-                        <th>Description</th>
+                        <th>firstName</th>
+                        <th>lastName</th>
+                        <th>position</th>
+                        <th>email</th>
+                        <th>phone</th>
                         <% if (req.user.username === 'admin') { %>
                             <th>Action</th>
                             <th>Action</th>
@@ -125,16 +128,18 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <% for(var i = 0; i < orders.length; i++) { %>
+                    <% for(var i = 0; i < employees.length; i++) { %>
                         <tr>
-                            <td><%= orders[i].id %></td>
-                            <td><%= orders[i].amount %></td>
-                            <td><%= orders[i].date %></td>
-                            <td><%= orders[i].description %></td>
+                            <td><%= employees[i].id %></td>
+                            <td><%= employees[i].firstName %></td>
+                            <td><%= employees[i].lastName %></td>
+                            <td><%= employees[i].position %></td>
+                            <td><%= employees[i].email %></td>
+                            <td><%= employees[i].phone %></td>
                             <% if (req.user.username === 'admin') { %>
-                                <td><a class="btn btn-outline-secondary" href="/orders/<%= orders[i].id %>/edit">Edit</a></td>
+                                <td><a class="btn btn-outline-secondary" href="/employees/<%= employees[i].id %>/edit">Edit</a></td>
                                 <td>
-                                    <form action="/orders/<%= orders[i].id %>?_method=DELETE" method="post">
+                                    <form action="/employees/<%= employees[i].id %>?_method=DELETE" method="post">
                                         <button type="submit" class="btn btn-outline-secondary">Delete</button>
                                     </form>
                                 </td>
