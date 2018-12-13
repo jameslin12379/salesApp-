@@ -67,6 +67,7 @@ router.get('/', isAuthenticated, function(req, res, next) {
 router.get('/clients/new', isAuthenticated, isAdmin, function(req, res){
     res.render('clients/new', {
         req: req,
+        title: 'Create client',
         errors: req.flash('errors'),
         inputs: req.flash('inputs')
     });
@@ -172,6 +173,7 @@ router.get('/clients/:id/edit', isAuthenticated, isAdmin, function(req, res){
             req: req,
             data: results,
             id: req.params.id,
+            title: 'Edit client',
             errors: req.flash('errors'),
             inputs: req.flash('inputs')
         });
@@ -258,7 +260,8 @@ router.get('/clients', isAuthenticated, function(req, res){
         res.render('clients/index', {
             req: req,
             clients: results,
-            alert: req.flash('alert')
+            title: 'Clients',
+            alert: req.flash('alert'),
         });
     });
 });
@@ -269,6 +272,7 @@ router.get('/clients', isAuthenticated, function(req, res){
 router.get('/employees/new', isAuthenticated, isAdmin, function(req, res){
     res.render('employees/new', {
         req: req,
+        title: 'Create employee',
         errors: req.flash('errors'),
         inputs: req.flash('inputs')
     });
@@ -361,6 +365,7 @@ router.get('/employees/:id/edit', isAuthenticated, isAdmin, function(req, res){
             req: req,
             data: results,
             id: req.params.id,
+            title: 'Edit employee',
             errors: req.flash('errors'),
             inputs: req.flash('inputs')
         });
@@ -435,6 +440,7 @@ router.get('/employees', isAuthenticated, function(req, res){
         res.render('employees/index', {
             req: req,
             employees: results,
+            title: 'Employees',
             alert: req.flash('alert')
         });
     });
@@ -446,6 +452,7 @@ router.get('/employees', isAuthenticated, function(req, res){
 router.get('/orders/new', isAuthenticated, isAdmin, function(req, res){
     res.render('orders/new', {
         req: req,
+        title: 'Create order',
         errors: req.flash('errors'),
         inputs: req.flash('inputs')
     });
@@ -530,6 +537,7 @@ router.get('/orders/:id/edit', isAuthenticated, isAdmin, function(req, res){
             req: req,
             data: results,
             id: req.params.id,
+            title: 'Edit order',
             errors: req.flash('errors'),
             inputs: req.flash('inputs')
         });
@@ -593,6 +601,7 @@ router.get('/orders', isAuthenticated, function(req, res){
         res.render('orders/index', {
             req: req,
             orders: results,
+            title: 'Orders',
             alert: req.flash('alert')
         });
     });
@@ -605,6 +614,7 @@ router.get('/orders', isAuthenticated, function(req, res){
 router.get('/users/new', isAuthenticated, isAdmin, function(req, res){
     res.render('users/new', {
         req: req,
+        title: 'Create user',
         errors: req.flash('errors'),
         inputs: req.flash('inputs')
     });
@@ -691,6 +701,7 @@ router.get('/users/:id/edit', isAuthenticated, isAdminOrSelf, function(req, res)
             req: req,
             data: results,
             id: req.params.id,
+            title: 'Edit user',
             errors: req.flash('errors'),
             inputs: req.flash('inputs')
         });
@@ -758,6 +769,7 @@ router.get('/users/:id', isAuthenticated, isAdminOrSelf, function(req, res){
         res.render('users/show', {
             req: req,
             user: results,
+            title: req.user.username,
             alert: req.flash('alert')
         });
     });
@@ -775,6 +787,7 @@ router.get('/users', isAuthenticated, isAdmin, function(req, res){
         res.render('users/index', {
             req: req,
             users: results,
+            title: 'Users',
             alert: req.flash('alert')
         });
     });
@@ -798,8 +811,8 @@ router.get('/logout', isAuthenticated, function(req, res){
     res.redirect('/login');
 });
 
-
 /// ERROR ROUTES ///
+
 router.get('/403', function(req, res){
     res.render('403');
 });
